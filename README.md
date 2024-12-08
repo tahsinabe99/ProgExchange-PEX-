@@ -1,11 +1,35 @@
-1. Describe how your exchange works.
-Exchange firsts reads the product file and makes item object. The we add signal handlers- 1 for SIGUSR1(to know when trader sends message) and one for SIGCHLD(to know when trader disconnects)
+Introducing ProgExchange (PEX), a cutting-edge platform for computer programmers to buy and sell
+high-demand components in a virtual marketplace. The need for in-person trading has been replaced
+by a state-of-the-art digital marketplace, allowing for greater accessibility and faster transactions,
+while providing a safe and convenient way for seasoned programmers to connect and make transactions.  
 
-The we make named pipes, create child process and run exec to run trader. We also make trader objects and connect to trader pipe. Then exchange sends message and waits for a trader to send signal.
-When trader sends message, we parse the command and process it which checks if message is invalid or not. If its a buy sell message we store the order in orderbook and the item's personal order book  or if its amend we amend and store it a tthe very end. If it is cancelled it is added at very end. We match order by using highes buy price and lowest sell price and send approproate message to traders. If SIGCHLD is received we close that tat trader and if all trader is closed exchange closses and frees all dynamically allocated memory
-2. Describe your design decisions for the trader and how it's fault-tolerant.
-when pipe is unable to open we check that. If there is problem with signal handler we check that.
+There are two key components of ProgExchange:
+the exchange itself, which will handle all incoming orders, and an auto-trading program that executes
+trades based on predefined conditions.
 
-3. Describe your tests and how to run them.
-No tests has been done. For error handling checks has been placed in multiple places
-# ProgExchange-PEX-
+Exchange
+The purpose of the ProgExchange is to allow trading to happen in an efficient and orderly manner. It
+receives orders from traders and matches them, allowing the buying and selling of computer components.
+The exchange also tracks the cash balance of each trader (which starts at $0 for each trading session).
+For providing such trading avenue, ProgExchange collects a 1% transaction fee on all successful
+orders.
+
+Trader
+Traders carry out their buying and selling activities by placing orders on the exchange.
+
+Auto-trader
+The program also has an auto-trader. Auto-trader is very simple: as soon as a SELL order is available in the exchange, it
+will place an opposite BUY order to attempt to buy the item.
+
+The exchange should attempt to match orders once there is at least one BUY and one SELL order for
+any particular product. Orders match if the price of the BUY order is larger than or equal to the price
+of the SELL order. The matching price is the price of the older order. Of the two matched traders, the
+exchange charges 1% transaction fee to the trader who placed the order last, rounded to the nearest
+dollar (eg: $4.50 -> $5.00).
+
+How to run the program
+./pe_exchange [product file] [trader 0] [trader 1] ... [trader n] where n is the number of traders
+
+The following example uses a product file named products.txt and trader binaries trader_a and trader_b:
+./pe_exchange products.txt ./trader_a ./trader_b
+
